@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-8">
+
+        <div class="card shadow">
+
+            <div class="card-header bg-warning text-dark">
+
+                <h4 class="mb-0">
+                    <i class="bi bi-pencil-square"></i>
+                    Edit Income
+                </h4>
+
+            </div>
+
+            <div class="card-body">
+
+                <form method="POST">
+
+                    <div class="mb-3">
+                        <label class="form-label">Income Date</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            name="income_date"
+                            value="{{ income.income_date }}"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Source</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            name="source"
+                            value="{{ income.source }}"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            name="category"
+                            value="{{ income.category }}"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Amount (SGD)</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            class="form-control"
+                            name="amount"
+                            value="{{ income.amount }}"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Remarks</label>
+                        <textarea
+                            class="form-control"
+                            name="remarks"
+                            rows="3">{{ income.remarks }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-circle"></i>
+                        Update Income
+                    </button>
+
+                    <a href="/" class="btn btn-secondary">
+                        Cancel
+                    </a>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

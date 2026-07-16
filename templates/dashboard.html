@@ -1,0 +1,1131 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2>🏠 Dashboard</h2>
+        <p class="text-muted">Welcome to My Finance Hub</p>
+        <form method="GET" class="row g-2 mb-4">
+
+        <div class="col-auto">
+
+        <input
+            type="month"
+            name="month"
+            class="form-control"
+            value="{{ selected_month or '' }}">
+
+        </div>
+
+        <div class="col-auto">
+
+        <button class="btn btn-primary">
+            <i class="bi bi-funnel"></i>
+            Filter
+        </button>
+
+        <a href="/" class="btn btn-secondary">
+            Reset
+        </a>
+
+    </div>
+
+    </form>
+
+    </div>
+
+    <div>
+
+        <a href="/add-income" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i>
+            Add Income
+        </a>
+
+        <a href="/add-expense" class="btn btn-danger">
+            <i class="bi bi-wallet2"></i>
+            Add Expense
+        </a>
+        
+        <a href="/add-budget" class="btn btn-primary">
+            <i class="bi bi-piggy-bank"></i>
+            Add Budget
+        </a>
+    </div>
+
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-body">
+
+        <form method="GET">
+
+            {% if selected_month %}
+            <input type="hidden" name="month" value="{{ selected_month }}">
+            {% endif %}
+
+            <div class="row">
+
+                <div class="col-md-10">
+
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control"
+                        placeholder="🔍 Search income, expense, category..."
+                        value="{{ search }}"
+                    >
+
+                </div>
+
+                <div class="col-md-2 d-grid">
+
+                    <button class="btn btn-primary">
+
+                        Search
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- Summary Cards -->
+
+<div class="row">
+
+    <!-- Income -->
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card shadow border-0 h-100">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    <i class="bi bi-cash-stack text-success"></i>
+                    Total Income
+                </h6>
+
+                <h2 class="text-success">
+                    SGD {{ "{:,.2f}".format(total_income) }}
+                </h2>
+
+                <small class="text-muted">
+                    Current Month
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Expense -->
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card shadow border-0 h-100">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    <i class="bi bi-wallet2 text-danger"></i>
+                    Total Expense
+                </h6>
+
+                <h2 class="text-danger">
+                    SGD {{ "{:,.2f}".format(total_expense) }}
+                </h2>
+
+                <small class="text-muted">
+                    Current Month
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Savings -->
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card shadow border-0 h-100">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    <i class="bi bi-piggy-bank text-primary"></i>
+                    Savings
+                </h6>
+
+                <h2 class="text-primary">
+                    SGD {{ "{:,.2f}".format(savings) }}
+                </h2>
+
+                <small class="text-muted">
+                    Available Balance
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Savings Rate -->
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card shadow border-0 h-100">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    <i class="bi bi-graph-up-arrow text-info"></i>
+                    Savings Rate
+                </h6>
+
+                <h2 class="text-info">
+                    {{ savings_rate }}%
+                </h2>
+
+                <small class="text-muted">
+                    Current Month
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="row mb-4">
+
+    <div class="col-md-4">
+
+        <div class="alert alert-success">
+
+            <h6>📈 Income Growth</h6>
+
+            <h3>{{ income_growth }}%</h3>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-4">
+
+        <div class="alert alert-danger">
+
+            <h6>💸 Expense Growth</h6>
+
+            <h3>{{ expense_growth }}%</h3>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-4">
+
+        <div class="alert alert-primary">
+
+            <h6>💰 Savings Growth</h6>
+
+            <h3>{{ saving_growth }}%</h3>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Expense Category Pie Chart(new) -->
+<div class="row">
+
+    <!-- Income vs Expense -->
+
+    <div class="col-lg-6 mb-4">
+
+        <div class="card shadow border-0 h-100">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+                    📊 Income vs Expense
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <canvas id="financeChart"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Expense by Category -->
+
+    <div class="col-lg-6 mb-4">
+
+        <div class="card shadow border-0 h-100">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+                    🥧 Expense by Category
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div style="height:350px;">
+                    <canvas id="expensePieChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Monthly Trend -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-white">
+
+        <h5 class="mb-0">
+            📈 Monthly Financial Trend
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <canvas id="trendChart"></canvas>
+
+    </div>
+
+</div>
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-white">
+
+        <h5 class="mb-0">
+            💰 Monthly Cash Flow
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-hover">
+
+            <thead>
+
+                <tr>
+
+                    <th>Month</th>
+
+                    <th class="text-success">Income</th>
+
+                    <th class="text-danger">Expense</th>
+
+                    <th class="text-primary">Savings</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for item in cashflow_summary %}
+
+                <tr>
+
+                    <td>{{ item.month }}</td>
+
+                    <td class="text-success">
+                        SGD {{ "{:,.2f}".format(item.income) }}
+                    </td>
+
+                    <td class="text-danger">
+                        SGD {{ "{:,.2f}".format(item.expense) }}
+                    </td>
+
+                    <td class="text-primary fw-bold">
+                        SGD {{ "{:,.2f}".format(item.saving) }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- Income Records -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-white">
+
+        <h5 class="mb-0">
+            <i class="bi bi-cash-stack"></i>
+            Income Records
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <table id="incomeTable" class="table table-hover align-middle">
+
+            <thead class="table-light">
+
+                <tr>
+
+                    <th>Date</th>
+                    <th>Source</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Remarks</th>
+                    <th>Actions</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for income in incomes %}
+
+                <tr>
+
+                    <td>{{ income.income_date }}</td>
+                    <td>{{ income.source }}</td>
+                    <td>{{ income.category }}</td>
+
+                    <td class="text-success fw-bold">
+                        SGD {{ "%.2f"|format(income.amount) }}
+                    </td>
+
+                    <td>{{ income.remarks }}</td>
+
+                    <td>
+
+                        <a href="/edit-income/{{ income.id }}"
+                           class="btn btn-warning btn-sm">
+
+                            <i class="bi bi-pencil"></i>
+
+                        </a>
+
+                        <a href="/delete-income/{{ income.id }}"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('Delete this income?')">
+
+                            <i class="bi bi-trash"></i>
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- Budget Overview -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-white">
+
+        <h5 class="mb-0">
+            <i class="bi bi-piggy-bank"></i>
+            Budget Overview
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <table class="table align-middle">
+
+            <thead class="table-light">
+
+                <tr>
+
+                    <th>Category</th>
+                    <th>Budget</th>
+                    <th>Spent</th>
+                    <th>Remaining</th>
+                    <th width="30%">Progress</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for budget in budget_summary %}
+
+                <tr>
+
+                    <td>
+                        {{ budget.category }}
+                    </td>
+
+                    <td>
+                        SGD {{ "%.2f"|format(budget.budget) }}
+                    </td>
+
+                    <td class="text-danger">
+                        SGD {{ "%.2f"|format(budget.spent) }}
+                    </td>
+
+                    <td>
+
+                        {% if budget.remaining >= 0 %}
+
+                            <span class="text-success">
+                                SGD {{ "%.2f"|format(budget.remaining) }}
+                            </span>
+
+                        {% else %}
+
+                            <span class="text-danger">
+                                SGD {{ "%.2f"|format(budget.remaining) }}
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {% if budget.percentage < 80 %}
+                            {% set bar_color = "bg-success" %}
+                        {% elif budget.percentage <= 100 %}
+                            {% set bar_color = "bg-warning" %}
+                        {% else %}
+                            {% set bar_color = "bg-danger" %}
+                        {% endif %}
+
+                        <div class="progress">
+
+                            <div class="progress-bar {{ bar_color }}"
+                                 role="progressbar"
+                                 style="width: {{ [budget.percentage,100]|min }}%;">
+
+                                {{ budget.percentage }}%
+
+                            </div>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- Expense Records -->
+
+<div class="card shadow border-0">
+
+    <div class="card-header bg-white">
+
+        <h5 class="mb-0">
+            <i class="bi bi-wallet2"></i>
+            Expense Records
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <table id="expenseTable" class="table table-hover align-middle">
+
+            <thead class="table-light">
+
+                <tr>
+
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for expense in expenses %}
+
+                <tr>
+
+                    <td>{{ expense.transaction_date }}</td>
+                    <td>{{ expense.category }}</td>
+                    <td>{{ expense.description }}</td>
+
+                    <td class="text-danger fw-bold">
+                        SGD {{ "%.2f"|format(expense.amount) }}
+                    </td>
+
+                    <td>
+
+                        <a href="/edit-expense/{{ expense.id }}"
+                           class="btn btn-warning btn-sm">
+
+                            <i class="bi bi-pencil"></i>
+
+                        </a>
+
+                        <a href="/delete-expense/{{ expense.id }}"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('Delete this expense?')">
+
+                            <i class="bi bi-trash"></i>
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- Budget Summary -->
+
+<div class="card shadow border-0 mt-4">
+
+    <div class="card-header bg-white">
+
+        <h5 class="mb-0">
+            💰 Budget Summary
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-hover">
+
+            <thead class="table-light">
+
+                <tr>
+                    <th>Category</th>
+                    <th>Budget</th>
+                    <th>Spent</th>
+                    <th>Remaining</th>
+                    <th>Used</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for budget in budget_summary %}
+
+                <tr>
+
+                    <td>{{ budget.category }}</td>
+
+                    <td>
+                        SGD {{ "%.2f"|format(budget.budget) }}
+                    </td>
+
+                    <td class="text-danger">
+                        SGD {{ "%.2f"|format(budget.spent) }}
+                    </td>
+
+                    <td class="text-success">
+                        SGD {{ "%.2f"|format(budget.remaining) }}
+                    </td>
+
+                    <td>
+
+                        <div class="progress">
+
+                            <div class="progress-bar
+                                {% if budget.percentage >= 100 %}
+                                    bg-danger
+                                {% elif budget.percentage >= 80 %}
+                                    bg-warning
+                                {% else %}
+                                    bg-success
+                                {% endif %}"
+
+                                style="width: {{ budget.percentage }}%;">
+
+                                {{ budget.percentage }}%
+
+                            </div>
+
+                        </div>
+
+                    </td>
+
+                    <td>
+
+                        <a href="/edit-budget/{{ budget.id }}"
+                           class="btn btn-warning btn-sm">
+
+                            <i class="bi bi-pencil"></i>
+
+                        </a>
+
+                        <a href="/delete-budget/{{ budget.id }}"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('Delete this budget?')">
+
+                            <i class="bi bi-trash"></i>
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- Financial Insights -->
+
+<div class="card shadow border-0 mt-4">
+
+    <div class="card-header bg-white">
+
+        <h4 class="mb-0">
+            💡 Financial Insights
+        </h4>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row">
+
+            <!-- Highest Income -->
+
+            <div class="col-md-4">
+
+                <h6 class="text-muted">
+                    🏆 Highest Income Source
+                </h6>
+
+                <h4 class="text-success">
+                    {{ highest_income_source }}
+                </h4>
+
+                <h5>
+                    SGD {{ "%.2f"|format(highest_income_amount) }}
+                </h5>
+
+            </div>
+
+            <!-- Highest Expense -->
+
+            <div class="col-md-4">
+
+                <h6 class="text-muted">
+                    💸 Highest Expense Category
+                </h6>
+
+                <h4 class="text-danger">
+                    {{ highest_expense_category }}
+                </h4>
+
+                <h5>
+                    SGD {{ "%.2f"|format(highest_expense_amount) }}
+                </h5>
+
+            </div>
+
+            <!-- Savings Rate -->
+
+            <div class="col-md-4">
+
+                <h6 class="text-muted">
+                    📈 Savings Rate
+                </h6>
+
+                <h2 class="text-primary">
+                    {{ savings_rate }}%
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-white">
+
+        <h5 class="mb-0">
+            🧠 Financial Insights
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row">
+
+            <div class="col-md-3">
+
+                <h6>🏆 Highest Income</h6>
+
+                <strong>{{ highest_income_source }}</strong>
+
+                <p class="text-success">
+                    SGD {{ "{:,.2f}".format(highest_income_amount) }}
+                </p>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <h6>💸 Highest Expense</h6>
+
+                <strong>{{ highest_expense_category }}</strong>
+
+                <p class="text-danger">
+                    SGD {{ "{:,.2f}".format(highest_expense_amount) }}
+                </p>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <h6>💰 Savings Rate</h6>
+
+                <h3 class="text-primary">
+                    {{ savings_rate }}%
+                </h3>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <h6>🎯 Budget Status</h6>
+
+                <p>{{ budget_status }}</p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+
+<script>
+
+window.onload = function () {
+
+    // ==========================
+    // Bar Chart
+    // ==========================
+
+    const ctx = document.getElementById("financeChart");
+
+    if (ctx) {
+
+        new Chart(ctx, {
+
+            type: "bar",
+
+            data: {
+
+                labels: ["Income", "Expense"],
+
+                datasets: [{
+
+                    label: "Amount (SGD)",
+
+                    data: [
+                        {{ total_income }},
+                        {{ total_expense }}
+                    ],
+
+                    backgroundColor: [
+                        "#198754",
+                        "#dc3545"
+                    ],
+
+                    borderRadius: 8
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                plugins: {
+
+                    legend: {
+
+                        display: false
+
+                    }
+
+                },
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+    // ==========================
+    // Pie Chart
+    // ==========================
+
+    const pieCtx = document.getElementById("expensePieChart");
+
+    if (pieCtx) {
+
+        new Chart(pieCtx, {
+
+            type: "pie",
+
+            data: {
+
+                labels: {{ expense_categories.keys() | list | tojson }},
+
+                datasets: [{
+
+                    data: {{ expense_categories.values() | list | tojson }},
+
+                    backgroundColor: [
+
+                        "#198754",
+                        "#0d6efd",
+                        "#dc3545",
+                        "#ffc107",
+                        "#6f42c1",
+                        "#20c997",
+                        "#fd7e14",
+                        "#6c757d",
+                        "#d63384",
+                        "#0dcaf0"
+
+                    ]
+
+                }]
+
+            },
+
+            options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+
+                        position: "right"
+
+                        }
+
+                    }
+
+                }
+
+        });
+
+    }
+
+
+    // ==========================
+    // Monthly Trend
+    // ==========================
+
+    const trendCtx = document.getElementById("trendChart");
+
+    if (trendCtx) {
+
+        new Chart(trendCtx, {
+
+            type: "line",
+
+            data: {
+
+                labels: {{ months | tojson }},
+
+                datasets: [
+
+                    {
+                        label: "Income",
+                        data: {{ income_trend | tojson }},
+                        borderColor: "#198754",
+                        backgroundColor: "#198754",
+                        tension: 0.3
+                    },
+
+                    {
+                        label: "Expense",
+                        data: {{ expense_trend | tojson }},
+                        borderColor: "#dc3545",
+                        backgroundColor: "#dc3545",
+                        tension: 0.3
+                    },
+
+                    {
+                        label: "Savings",
+                        data: {{ saving_trend | tojson }},
+                        borderColor: "#0d6efd",
+                        backgroundColor: "#0d6efd",
+                        tension: 0.3
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                plugins: {
+
+                    legend: {
+
+                        position: "top"
+
+                    }
+
+                },
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+  
+    if (typeof jQuery !== "undefined") {
+
+            if (document.getElementById("incomeTable")) {
+
+                jQuery("#incomeTable").DataTable({
+                pageLength: 10,
+                ordering: true,
+                searching: true,
+                lengthMenu: [10, 25, 50, 100],
+                order: [[0, "desc"]]
+                });
+
+            }
+
+        if (document.getElementById("expenseTable")) {
+
+            jQuery("#expenseTable").DataTable({
+                pageLength: 10,
+                ordering: true,
+                searching: true,
+                lengthMenu: [10, 25, 50, 100],
+                order: [[0, "desc"]]
+            });
+
+        }
+
+    }
+
+};
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2>🏦 Accounts</h2>
+
+        <p class="text-muted">
+            Investment & Financial Accounts
+        </p>
+
+    </div>
+
+    <a href="/add-account" class="btn btn-success">
+
+        <i class="bi bi-plus-circle"></i>
+
+        Add Account
+
+    </a>
+
+</div>
+
+<div class="card shadow">
+
+    <div class="card-body">
+
+        <table class="table table-hover">
+
+            <thead>
+                <tr>
+                    <th>Platform</th>
+                    <th>Account Name</th>
+                    <th>Type</th>
+                    <th>Country</th>
+                    <th>Currency</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for account in accounts %}
+
+                <tr>
+                    <td><strong>{{ account.platform }}</strong></td>
+                    <td>{{ account.account_name }}</td>
+                    <td>{{ account.account_type }}</td>
+                    <td>{{ account.country }}</td>
+                    <td>{{ account.base_currency }}</td>
+
+                    <td class="text-end">
+                        <a href="/edit-account/{{ account.id }}"
+                           class="btn btn-sm btn-outline-primary">
+                            Edit
+                        </a>
+
+                        <a href="/delete-account/{{ account.id }}"
+                           class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('Delete this account?')">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

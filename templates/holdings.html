@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2>📈 Holdings</h2>
+        <p class="text-muted">
+            Investment Portfolio
+        </p>
+    </div>
+
+    <div>
+
+        <a href="/add-holding" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i>
+            Add Holding
+        </a>
+
+    </div>
+
+</div>
+
+<div class="card shadow">
+
+    <div class="card-body">
+
+        <table class="table table-hover table-striped align-middle" id="holdingTable">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>Asset</th>
+                    <th>Country</th>
+                    <th>Platform</th>
+                    <th>Currency</th>
+                    <th class="text-end">Qty</th>
+                    <th class="text-end">Avg Cost</th>
+                    <th class="text-end">Current Price</th>
+                    <th class="text-end">Market Value</th>
+                    <th class="text-end">Gain/Loss</th>
+                    <th class="text-end">Return %</th>
+                    <th class="text-center">Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for holding in holdings %}
+
+                {% set cost = (holding.quantity * holding.average_cost) + holding.total_fees %}
+                {% set value = holding.quantity * holding.current_price %}
+                {% set gain = value - cost %}
+
+                {% if cost > 0 %}
+                    {% set return_pct = (gain / cost) * 100 %}
+                {% else %}
+                    {% set return_pct = 0 %}
+                {% endif %}
+
+                <tr>
+
+                    <td>
+
+                        <strong>{{ holding.asset_name }}</strong><br>
+
+                        <small class="text-muted">
+
+                            {{ holding.ticker }}
+
+                        </small>
+
+                    </td>
+
+                    <td>{{ holding.country }}</td>
+
+                    <td>{{ holding.platform }}</td>
+
+                    <td>{{ holding.currency }}</td>
+
+                    <td class="text-end">
+
+                        {{ "%.4f"|format(holding.quantity) }}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        {{ holding.currency }}
+                        {{ "%.2f"|format(holding.average_cost) }}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        {{ holding.currency }}
+                        {{ "%.2f"|format(holding.current_price) }}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        <strong>
+
+                        {{ holding.currency }}
+                        {{ "%.2f"|format(value) }}
+
+                        </strong>
+
+                    </td>
+
+                    <td class="text-end">
+
+                        {% if gain >= 0 %}
+
+                            <span class="text-success fw-bold">
+
+                                +{{ holding.currency }}
+                                {{ "%.2f"|format(gain) }}
+
+                            </span>
+
+                        {% else %}
+
+                            <span class="text-danger fw-bold">
+
+                                {{ holding.currency }}
+                                {{ "%.2f"|format(gain) }}
+
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        {% if return_pct >= 0 %}
+
+                            <span class="text-success fw-bold">
+
+                                +{{ "%.2f"|format(return_pct) }}%
+
+                            </span>
+
+                        {% else %}
+
+                            <span class="text-danger fw-bold">
+
+                                {{ "%.2f"|format(return_pct) }}%
+
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td class="text-center">
+
+                        <a href="/edit-holding/{{ holding.id }}"
+                           class="btn btn-warning btn-sm">
+
+                            <i class="bi bi-pencil"></i>
+
+                        </a>
+
+                        <a href="/delete-holding/{{ holding.id }}"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('Delete this holding?')">
+
+                            <i class="bi bi-trash"></i>
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+window.addEventListener("load", function () {
+
+    if (typeof jQuery !== "undefined") {
+
+        jQuery("#holdingTable").DataTable({
+
+            pageLength: 10,
+
+            ordering: true,
+
+            searching: true,
+
+            lengthMenu: [10,25,50,100],
+
+            order: [[0,"asc"]]
+
+        });
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-warning text-dark">
+
+            <h4>
+                ✏️ Edit Holding
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST">
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>Purchase Date</label>
+
+                        <input
+                            type="date"
+                            name="purchase_date"
+                            class="form-control"
+                            value="{{ holding.purchase_date }}"
+                            required>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>Asset Class</label>
+
+                        <input
+                            type="text"
+                            name="asset_class"
+                            class="form-control"
+                            value="{{ holding.asset_class }}"
+                            required>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>Platform</label>
+
+                        <input
+                            type="text"
+                            name="platform"
+                            class="form-control"
+                            value="{{ holding.platform }}"
+                            required>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>Account</label>
+
+                        <input
+                            type="text"
+                            name="account_name"
+                            class="form-control"
+                            value="{{ holding.account_name }}">
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>Ticker</label>
+
+                        <input
+                            type="text"
+                            name="ticker"
+                            class="form-control"
+                            value="{{ holding.ticker }}"
+                            required>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>Asset Name</label>
+
+                        <input
+                            type="text"
+                            name="asset_name"
+                            class="form-control"
+                            value="{{ holding.asset_name }}"
+                            required>
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label>Country</label>
+
+                        <input
+                            type="text"
+                            name="country"
+                            class="form-control"
+                            value="{{ holding.country }}">
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label>Currency</label>
+
+                        <input
+                            type="text"
+                            name="currency"
+                            class="form-control"
+                            value="{{ holding.currency }}">
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label>Quantity</label>
+
+                        <input
+                            type="number"
+                            step="0.000001"
+                            name="quantity"
+                            class="form-control"
+                            value="{{ holding.quantity }}"
+                            required>
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label>Average Cost</label>
+
+                        <input
+                            type="number"
+                            step="0.000001"
+                            name="average_cost"
+                            class="form-control"
+                            value="{{ holding.average_cost }}"
+                            required>
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label>Total Fees</label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            name="total_fees"
+                            class="form-control"
+                            value="{{ holding.total_fees }}">
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label>Current Price</label>
+
+                        <input
+                            type="number"
+                            step="0.000001"
+                            name="current_price"
+                            class="form-control"
+                            value="{{ holding.current_price }}"
+                            required>
+
+                    </div>
+
+                    <div class="col-12 mb-3">
+
+                        <label>Remarks</label>
+
+                        <textarea
+                            name="remarks"
+                            class="form-control">{{ holding.remarks }}</textarea>
+
+                    </div>
+
+                </div>
+
+                <button class="btn btn-warning">
+
+                    Update Holding
+
+                </button>
+
+                <a href="/holdings" class="btn btn-secondary">
+
+                    Cancel
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

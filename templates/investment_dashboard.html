@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    📈 Investment Dashboard
+</h2>
+
+<!-- ========================= -->
+<!-- Filter -->
+<!-- ========================= -->
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-body">
+
+        <form method="GET" class="row g-3 align-items-end">
+
+            <div class="col-md-3">
+
+                <label class="form-label">
+                    Year
+                </label>
+
+                <select
+                    name="year"
+                    class="form-select">
+
+                    <option value="">All Time</option>
+
+                    <option value="2024"
+                        {% if request.args.get("year")=="2024" %}selected{% endif %}>
+                        2024
+                    </option>
+
+                    <option value="2025"
+                        {% if request.args.get("year")=="2025" %}selected{% endif %}>
+                        2025
+                    </option>
+
+                    <option value="2026"
+                        {% if request.args.get("year")=="2026" %}selected{% endif %}>
+                        2026
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="col-md-2">
+
+                <button class="btn btn-primary w-100">
+
+                    <i class="bi bi-funnel"></i>
+
+                    Filter
+
+                </button>
+
+            </div>
+
+            <div class="col-md-2">
+
+                <a href="/investment" class="btn btn-secondary w-100">
+
+                    Reset
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- ========================= -->
+<!-- Summary Cards -->
+<!-- ========================= -->
+
+<div class="row">
+
+    <div class="col-md-3">
+
+        <div class="card shadow border-0">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Portfolio Value
+                </h6>
+
+                <h3 class="text-primary">
+
+                    {{ "%.2f"|format(total_value) }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card shadow border-0">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Total Cost
+                </h6>
+
+                <h3>
+
+                    {{ "%.2f"|format(total_cost) }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card shadow border-0">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Unrealized Gain
+                </h6>
+
+                {% if total_gain >= 0 %}
+
+                    <h3 class="text-success">
+
+                        +{{ "%.2f"|format(total_gain) }}
+
+                    </h3>
+
+                {% else %}
+
+                    <h3 class="text-danger">
+
+                        {{ "%.2f"|format(total_gain) }}
+
+                    </h3>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card shadow border-0">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Return %
+                </h6>
+
+                {% if total_return >= 0 %}
+
+                    <h3 class="text-success">
+
+                        +{{ "%.2f"|format(total_return) }}%
+
+                    </h3>
+
+                {% else %}
+
+                    <h3 class="text-danger">
+
+                        {{ "%.2f"|format(total_return) }}%
+
+                    </h3>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
