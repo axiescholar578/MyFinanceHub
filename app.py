@@ -546,18 +546,64 @@ def holdings():
     response = (
         supabase
         .table("holdings")
-        .select("*")
-        .order("purchase_date", desc=True)
+        .select("""
+            *,
+            assets(
+                asset_name,
+                ticker,
+                country,
+                currency,
+                asset_class
+            ),
+            accounts(
+                account_name,
+                platform
+            )
+        """)
+        .order("id")
         .execute()
     )
 
-    holdings = response.data
+    holdings = []
+
+    for row in response.data:
+
+        asset = row.get("assets") or {}
+        account = row.get("accounts") or {}
+
+        holdings.append({
+
+            "id": row["id"],
+
+            "asset_name": asset.get("asset_name", ""),
+
+            "ticker": asset.get("ticker", ""),
+
+            "country": asset.get("country", ""),
+
+            "currency": asset.get("currency", ""),
+
+            "asset_class": asset.get("asset_class", ""),
+
+            "platform": account.get("platform", ""),
+
+            "account_name": account.get("account_name", ""),
+
+            "quantity": float(row["quantity"]),
+
+            "average_cost": float(row["average_cost"]),
+
+            "current_price": float(row.get("current_price") or 0),
+
+            "total_fees": float(row.get("total_fees") or 0)
+
+        })
 
     return render_template(
         "holdings.html",
         holdings=holdings
     )
-
+    
 @app.route("/add-holding", methods=["GET", "POST"])
 def add_holding():
 

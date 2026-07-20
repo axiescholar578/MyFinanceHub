@@ -9,75 +9,85 @@ class PortfolioEngine:
     @staticmethod
     def rebuild_holdings():
 
-        print("Rebuilding Holdings...")
+        print("========== Portfolio Engine ==========")
 
         # Read all transactions
-        transactions = (
+        response = (
             supabase
             .table("transactions")
             .select("*")
             .order("transaction_date")
             .execute()
-            .data
         )
+
+        transactions = response.data
 
         portfolio = defaultdict(lambda: {
             "quantity": 0,
-            "cost": 0,
-            "fees": 0,
+            "total_cost": 0,
+            "total_fees": 0,
             "account_id": None
         })
 
-        for t in transactions:
+        for trx in transactions:
 
-            asset_id = t["asset_id"]
+            asset_id = trx["asset_id"]
 
-            qty = float(t["quantity"] or 0)
+            account_id = trx["account_id"]
 
-            price = float(t["price"] or 0)
+            qty = float(trx["quantity"] or 0)
 
-            fees = float(t["fees"] or 0)
+            price = float(trx["price"] or 0)
 
-            trx = t["transaction_type"]
+            fees = float(trx["fees"] or 0)
 
-            if trx == "BUY":
+            trx_type = trx["transaction_type"]
+
+            if trx_type == "BUY":
 
                 portfolio[asset_id]["quantity"] += qty
 
-                portfolio[asset_id]["cost"] += qty * price
+                portfolio[asset_id]["total_cost"] += qty * price
 
-                portfolio[asset_id]["fees"] += fees
+                portfolio[asset_id]["total_fees"] += fees
 
-                portfolio[asset_id]["account_id"] = t["account_id"]
+                portfolio[asset_id]["account_id"] = account_id
 
-            elif trx == "SELL":
+            elif trx_type == "SELL":
 
                 portfolio[asset_id]["quantity"] -= qty
 
-                portfolio[asset_id]["account_id"] = t["account_id"]
-
-        # Remove existing holdings
+        # Clear holdings
         supabase.table("holdings").delete().neq("id", 0).execute()
 
-        # Insert calculated holdings
+        # Build holdings
         for asset_id, data in portfolio.items():
 
             if data["quantity"] <= 0:
                 continue
 
             average_cost = (
-                data["cost"] + data["fees"]
+                data["total_cost"] + data["total_fees"]
             ) / data["quantity"]
 
             holding = {
+
                 "asset_id": asset_id,
+
                 "account_id": data["account_id"],
+
                 "quantity": data["quantity"],
-                "average_cost": average_cost,
-                "total_fees": data["fees"],
+
+                "average_cost": round(average_cost, 6),
+
+                "total_fees": round(data["total_fees"], 2),
+
+                "current_price": 0,
+
                 "last_calculated": datetime.now().isoformat()
+
             }
 
             supabase.table("holdings").insert(holding).execute()
 
-        print("Portfolio rebuild completed.")
+        print("Portfolio rebuilt successfully.")

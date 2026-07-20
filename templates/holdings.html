@@ -20,15 +20,51 @@
 
         </a>
 
-        <a href="/add-holding"
-        class="btn btn-success">
+    </div>
+</div>
 
-            <i class="bi bi-plus-circle"></i>
-            Add Holding
+<div class="row mb-4">
 
-        </a>
+    <div class="col-md-3">
+
+        <div class="card border-primary shadow-sm">
+
+            <div class="card-body">
+
+                <small class="text-muted">
+                    Holdings
+                </small>
+
+                <h3>{{ holdings|length }}</h3>
+
+            </div>
+
+        </div>
 
     </div>
+
+    <div class="col-md-3">
+
+        <div class="card border-success shadow-sm">
+
+            <div class="card-body">
+
+                <small class="text-muted">
+                    Total Quantity
+                </small>
+
+                <h3>
+
+                    {{ holdings|sum(attribute="quantity")|round(2) }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
 <div class="card shadow">
@@ -51,7 +87,6 @@
                     <th class="text-end">Market Value</th>
                     <th class="text-end">Gain/Loss</th>
                     <th class="text-end">Return %</th>
-                    <th class="text-center">Action</th>
 
                 </tr>
 
@@ -165,25 +200,6 @@
                             </span>
 
                         {% endif %}
-
-                    </td>
-
-                    <td class="text-center">
-
-                        <a href="/edit-holding/{{ holding.id }}"
-                           class="btn btn-warning btn-sm">
-
-                            <i class="bi bi-pencil"></i>
-
-                        </a>
-
-                        <a href="/delete-holding/{{ holding.id }}"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('Delete this holding?')">
-
-                            <i class="bi bi-trash"></i>
-
-                        </a>
 
                     </td>
 
