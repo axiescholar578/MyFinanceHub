@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for
+
 from supabase_config import supabase
 
 app = Flask(__name__)
 
+# from routes.dashboard import dashboard_bp
+# app.register_blueprint(dashboard_bp)
 
 @app.route("/")
 def home():
@@ -531,6 +534,28 @@ def delete_expense(id):
 
 print(">>> ADD HOLDING ROUTE LOADED <<<")
 
+# =====================================================
+# HOLDINGS
+# =====================================================
+
+@app.route("/holdings")
+def holdings():
+
+    response = (
+        supabase
+        .table("holdings")
+        .select("*")
+        .order("purchase_date", desc=True)
+        .execute()
+    )
+
+    holdings = response.data
+
+    return render_template(
+        "holdings.html",
+        holdings=holdings
+    )
+
 @app.route("/add-holding", methods=["GET", "POST"])
 def add_holding():
 
@@ -574,6 +599,80 @@ def add_holding():
 
     return render_template("add_holding.html")
 
+@app.route("/transactions")
+def transactions():
+
+    response = (
+    supabase
+    .table("transactions")
+    .select("*, assets(asset_name,ticker), accounts(account_name)")
+    .order("transaction_date", desc=True)
+    .execute()
+    )
+
+    transactions = []
+
+    for row in response.data:
+
+        row["asset_name"] = row["assets"]["asset_name"]
+        row["account_name"] = row["accounts"]["account_name"]
+
+        transactions.append(row)
+
+    return render_template(
+        "transactions.html",
+        transactions=transactions
+    )
+
+# =====================================================
+# ADD TRANSACTION
+# =====================================================
+
+@app.route("/add-transaction", methods=["GET", "POST"])
+def add_transaction():
+
+    if request.method == "POST":
+
+        supabase.table("transactions").insert({
+
+            "transaction_date": request.form["transaction_date"],
+            "transaction_type": request.form["transaction_type"],
+            "asset_id": int(request.form["asset_id"]),
+            "account_id": int(request.form["account_id"]),
+            "quantity": float(request.form["quantity"]),
+            "price": float(request.form["price"]),
+            "fees": float(request.form["fees"]),
+            "exchange_rate": float(request.form["exchange_rate"]),
+            "cash_amount": float(request.form["cash_amount"]),
+            "remarks": request.form["remarks"]
+
+        }).execute()
+
+        return redirect(url_for("transactions"))
+
+    assets = (
+        supabase
+        .table("assets")
+        .select("*")
+        .order("asset_name")
+        .execute()
+        .data
+    )
+
+    accounts = (
+        supabase
+        .table("accounts")
+        .select("*")
+        .order("account_name")
+        .execute()
+        .data
+    )
+
+    return render_template(
+        "add_transaction.html",
+        assets=assets,
+        accounts=accounts
+    )
 # =====================================================
 # INVESTMENT DASHBOARD
 # =====================================================

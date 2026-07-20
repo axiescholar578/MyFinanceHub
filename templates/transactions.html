@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2>💳 Transactions</h2>
+
+        <p class="text-muted">
+            Investment Transaction History
+        </p>
+
+    </div>
+
+    <a href="/add-transaction" class="btn btn-success">
+
+        <i class="bi bi-plus-circle"></i>
+
+        Add Transaction
+
+    </a>
+
+</div>
+
+<div class="card shadow">
+
+    <div class="card-body">
+
+        <table class="table table-hover" id="transactionTable">
+
+            <thead>
+
+                <tr>
+
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Asset</th>
+                    <th>Account</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Fees</th>
+                    <th>Exchange Rate</th>
+                    <th>Remarks</th>
+                    <th></th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for transaction in transactions %}
+
+                <tr>
+
+                    <td>{{ transaction.transaction_date }}</td>
+
+                    <td>
+
+                        {% if transaction.transaction_type == "BUY" %}
+                            <span class="badge bg-success">BUY</span>
+
+                        {% elif transaction.transaction_type == "SELL" %}
+                            <span class="badge bg-danger">SELL</span>
+
+                        {% elif transaction.transaction_type == "DIVIDEND" %}
+                            <span class="badge bg-warning text-dark">
+                                DIVIDEND
+                            </span>
+
+                        {% else %}
+                            <span class="badge bg-secondary">
+                                {{ transaction.transaction_type }}
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>{{ transaction.asset_name }}</td>
+
+                    <td>{{ transaction.account_name }}</td>
+
+                    <td>{{ transaction.quantity }}</td>
+
+                    <td>{{ transaction.price }}</td>
+
+                    <td>{{ transaction.fees }}</td>
+
+                    <td>{{ transaction.exchange_rate }}</td>
+
+                    <td>{{ transaction.remarks }}</td>
+
+                    <td>
+
+                        <a href="/edit-transaction/{{ transaction.id }}"
+                           class="btn btn-sm btn-outline-primary">
+
+                            Edit
+
+                        </a>
+
+                        <a href="/delete-transaction/{{ transaction.id }}"
+                           class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('Delete this transaction?')">
+
+                            Delete
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}
