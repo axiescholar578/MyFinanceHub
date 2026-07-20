@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for
 
 from supabase_config import supabase
 
+from services.portfolio_engine import PortfolioEngine
+
 app = Flask(__name__)
 
 # from routes.dashboard import dashboard_bp
@@ -598,6 +600,13 @@ def add_holding():
         return redirect("/")
 
     return render_template("add_holding.html")
+
+@app.route("/rebuild-portfolio")
+def rebuild_portfolio():
+
+    PortfolioEngine.rebuild_holdings()
+
+    return redirect("/holdings")
 
 @app.route("/transactions")
 def transactions():
