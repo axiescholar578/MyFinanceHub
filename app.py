@@ -8,9 +8,12 @@ app = Flask(__name__)
 
 from routes.dashboard import dashboard_bp
 
+from routes.portfolio_dashboard import portfolio_dashboard_bp
+
 app.register_blueprint(dashboard_bp)
 # from routes.dashboard import dashboard_bp
 # app.register_blueprint(dashboard_bp)
+app.register_blueprint(portfolio_dashboard_bp)
 
     # =====================================================
 # ADD INCOME
@@ -441,27 +444,30 @@ def edit_holding(id):
 
         supabase.table("holdings").update({
 
-            "purchase_date": request.form["purchase_date"],
-            "asset_class": request.form["asset_class"],
-            "platform": request.form["platform"],
-            "account_name": request.form["account_name"],
-            "ticker": request.form["ticker"],
-            "asset_name": request.form["asset_name"],
-            "country": request.form["country"],
-            "currency": request.form["currency"],
             "quantity": float(request.form["quantity"]),
             "average_cost": float(request.form["average_cost"]),
-            "total_fees": float(request.form["total_fees"]),
             "current_price": float(request.form["current_price"]),
-            "remarks": request.form["remarks"]
+            "total_fees": float(request.form["total_fees"])
 
         }).eq("id", id).execute()
 
         return redirect(url_for("holdings"))
 
     response = (
-        supabase.table("holdings")
-        .select("*")
+        supabase
+        .table("holdings")
+        .select("""
+            *,
+            assets(
+                asset_name,
+                ticker,
+                country,
+                currency
+            ),
+            accounts(
+                account_name
+            )
+        """)
         .eq("id", id)
         .single()
         .execute()
@@ -618,6 +624,42 @@ def delete_account(id):
         .execute()
 
     return redirect(url_for("accounts"))    
+
+@app.route("/update-market-prices")
+def update_market_prices():
+
+    from services.market_price_service import MarketPriceService
+
+    holdings = (
+        supabase
+        .table("holdings")
+        .select("""
+            id,
+            asset_id,
+            assets(
+                ticker
+            )
+        """)
+        .execute()
+        .data
+    )
+
+    for holding in holdings:
+
+        ticker = holding["assets"]["ticker"]
+
+        price = MarketPriceService.get_price(ticker)
+
+        if price is not None:
+
+            supabase.table("holdings").update({
+
+                "current_price": price
+
+            }).eq("id", holding["id"]).execute()
+
+    return redirect(url_for("holdings"))
+    
 # =====================================================
 # RUN APP
 # =====================================================

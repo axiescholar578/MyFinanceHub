@@ -14,12 +14,17 @@
     <div class="d-flex gap-2">
 
         <a href="/rebuild-portfolio"
-        class="btn btn-primary">
+           class="btn btn-primary">
 
             🔄 Rebuild Portfolio
 
         </a>
+        <a href="/update-market-prices"
+            class="btn btn-success">
 
+            🔄 Update Market Prices
+
+        </a>
     </div>
 </div>
 
@@ -87,6 +92,7 @@
                     <th class="text-end">Market Value</th>
                     <th class="text-end">Gain/Loss</th>
                     <th class="text-end">Return %</th>
+                    <th class="text-center">Action</th>
 
                 </tr>
 
@@ -200,6 +206,17 @@
                             </span>
 
                         {% endif %}
+
+                    </td>
+
+                    <td class="text-center">
+
+                        <a href="/edit-holding/{{ holding.id }}"
+                           class="btn btn-warning btn-sm">
+
+                            ✏️ Edit
+
+                        </a>
 
                     </td>
 

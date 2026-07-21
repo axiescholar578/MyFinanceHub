@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">
+        📊 Portfolio Dashboard
+    </h2>
+
+    <div class="row">
+
+        <div class="col-md-3 mb-3">
+            <div class="card shadow border-primary">
+                <div class="card-body">
+                    <h6>Portfolio Value</h6>
+                    <h3>
+                        {{ "%.2f"|format(summary.portfolio_value) }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card shadow border-success">
+                <div class="card-body">
+                    <h6>Total Cost</h6>
+                    <h3>
+                        {{ "%.2f"|format(summary.total_cost) }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card shadow border-info">
+                <div class="card-body">
+                    <h6>Total Gain</h6>
+
+                    {% if summary.gain >=0 %}
+                        <h3 class="text-success">
+                    {% else %}
+                        <h3 class="text-danger">
+                    {% endif %}
+
+                        {{ "%.2f"|format(summary.gain) }}
+
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card shadow border-warning">
+                <div class="card-body">
+                    <h6>Total Return</h6>
+
+                    {% if summary.return_pct >=0 %}
+                        <h3 class="text-success">
+                    {% else %}
+                        <h3 class="text-danger">
+                    {% endif %}
+
+                        {{ "%.2f"|format(summary.return_pct) }}%
+
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <hr>
+
+    <h4>Asset Allocation</h4>
+
+    <div class="row">
+
+        <div class="col-lg-5">
+
+            <div class="card shadow mb-4">
+
+                <div class="card-header">
+
+                    <strong>Portfolio Allocation</strong>
+
+                </div>
+
+                <div class="card-body">
+
+                    <canvas id="allocationChart"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-7">
+
+            <table class="table table-striped">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Asset</th>
+                        <th class="text-end">Market Value</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for item in asset_allocation %}
+
+                    <tr>
+
+                        <td>
+
+                            {{ item.asset }}
+
+                            <small class="text-muted">
+                                {{ item.ticker }}
+                            </small>
+
+                        </td>
+
+                        <td class="text-end">
+
+                            {{ "%.2f"|format(item.value) }}
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <hr>
+
+    <h4>Top Holdings</h4>
+
+    <table class="table table-hover">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>Asset</th>
+
+                <th>Country</th>
+
+                <th>Platform</th>
+
+                <th class="text-end">Qty</th>
+
+                <th class="text-end">Current Price</th>
+
+                <th class="text-end">Market Value</th>
+
+                <th class="text-end">Gain</th>
+
+                <th class="text-end">Return %</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for h in top_holdings %}
+
+            <tr>
+
+                <td>
+
+                    {{ h.asset }}
+
+                    <small class="text-muted">
+
+                        {{ h.ticker }}
+
+                    </small>
+
+                </td>
+
+                <td>{{ h.country }}</td>
+
+                <td>{{ h.platform }}</td>
+
+                <td class="text-end">
+
+                    {{ "%.4f"|format(h.quantity) }}
+
+                </td>
+
+                <td class="text-end">
+
+                    {{ h.currency }}
+                    {{ "%.2f"|format(h.current_price) }}
+
+                </td>
+
+                <td class="text-end">
+
+                    {{ h.currency }}
+                    {{ "%.2f"|format(h.market_value) }}
+
+                </td>
+
+                <td class="text-end">
+
+                    {% if h.gain >=0 %}
+
+                        <span class="text-success">
+
+                    {% else %}
+
+                        <span class="text-danger">
+
+                    {% endif %}
+
+                        {{ "%.2f"|format(h.gain) }}
+
+                    </span>
+
+                </td>
+
+                <td class="text-end">
+
+                    {% if h.return_pct >=0 %}
+
+                        <span class="text-success">
+
+                    {% else %}
+
+                        <span class="text-danger">
+
+                    {% endif %}
+
+                        {{ "%.2f"|format(h.return_pct) }}%
+
+                    </span>
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+ 
+</div>
+<script>
+
+window.addEventListener("DOMContentLoaded", function () {
+
+    const ctx = document.getElementById("allocationChart");
+
+    if (!ctx) {
+        console.log("Canvas not found");
+        return;
+    }
+
+    const labels = [
+        {% for item in asset_allocation %}
+            "{{ item.ticker }}",
+        {% endfor %}
+    ];
+
+    const values = [
+        {% for item in asset_allocation %}
+            {{ item.value }},
+        {% endfor %}
+    ];
+
+    console.log(labels);
+    console.log(values);
+
+    new Chart(ctx, {
+        type: "pie",
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+
+});
+
+</script>
+
+{% endblock %}
