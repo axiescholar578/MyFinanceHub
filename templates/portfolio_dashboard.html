@@ -1,6 +1,65 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="row mb-3">
+
+    <div class="col-md-4">
+
+        <form method="GET">
+
+            <label class="form-label">
+
+                Asset Class
+
+            </label>
+
+            <select
+                name="asset_class"
+                class="form-select"
+                onchange="this.form.submit()">
+
+                <option value="All"
+                    {% if asset_class=="All" %}selected{% endif %}>
+                    All
+                </option>
+
+                <option value="Stock"
+                    {% if asset_class=="Stock" %}selected{% endif %}>
+                    Stock
+                </option>
+
+                <option value="ETF"
+                    {% if asset_class=="ETF" %}selected{% endif %}>
+                    ETF
+                </option>
+
+                <option value="REIT"
+                    {% if asset_class=="REIT" %}selected{% endif %}>
+                    REIT
+                </option>
+
+                <option value="Bond"
+                    {% if asset_class=="Bond" %}selected{% endif %}>
+                    Bond
+                </option>
+
+                <option value="Cash"
+                    {% if asset_class=="Cash" %}selected{% endif %}>
+                    Cash
+                </option>
+
+                <option value="Crypto"
+                    {% if asset_class=="Crypto" %}selected{% endif %}>
+                    Crypto
+                </option>
+
+            </select>
+
+        </form>
+
+    </div>
+
+</div>
 
 <div class="container mt-4">
 
@@ -108,6 +167,16 @@
                         <th class="text-end">Market Value</th>
 
                     </tr>
+                
+                <thead>
+
+                <tr>
+
+                    <th>Asset Class</th>
+                    <th class="text-end">Value (SGD)</th>
+                    <th class="text-end">%</th>
+
+                </tr>
 
                 </thead>
 
@@ -115,25 +184,23 @@
 
                 {% for item in asset_allocation %}
 
-                    <tr>
+                <tr>
 
-                        <td>
+                    <td>{{ item.asset_class }}</td>
 
-                            {{ item.asset }}
+                    <td class="text-end">
 
-                            <small class="text-muted">
-                                {{ item.ticker }}
-                            </small>
+                        {{ "{:,.2f}".format(item.value) }}
 
-                        </td>
+                    </td>
 
-                        <td class="text-end">
+                    <td class="text-end">
 
-                            {{ "%.2f"|format(item.value) }}
+                        {{ item.percentage }}%
 
-                        </td>
+                    </td>
 
-                    </tr>
+                </tr>
 
                 {% endfor %}
 
@@ -275,7 +342,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
     const labels = [
         {% for item in asset_allocation %}
-            "{{ item.ticker }}",
+            "{{ item.asset_class }}",
         {% endfor %}
     ];
 
@@ -285,29 +352,71 @@ window.addEventListener("DOMContentLoaded", function () {
         {% endfor %}
     ];
 
-    console.log(labels);
-    console.log(values);
-
     new Chart(ctx, {
+
         type: "pie",
+
         data: {
+
             labels: labels,
+
             datasets: [{
-                data: values
+
+                label: "Portfolio Allocation",
+
+                data: values,
+
+                borderWidth: 1
+
             }]
+
         },
+
         options: {
+
             responsive: true,
+
             plugins: {
+
                 legend: {
+
                     position: "bottom"
+
+                },
+
+                tooltip: {
+
+                    callbacks: {
+
+                        label: function(context) {
+
+                            let total = context.dataset.data.reduce((a,b)=>a+b,0);
+
+                            let value = context.raw;
+
+                            let pct = (value / total * 100).toFixed(1);
+
+                            return context.label +
+                                   ": SGD " +
+                                   value.toLocaleString(undefined,{
+                                        minimumFractionDigits:2,
+                                        maximumFractionDigits:2
+                                   }) +
+                                   " (" + pct + "%)";
+
+                        }
+
+                    }
+
                 }
+
             }
+
         }
+
     });
 
 });
 
 </script>
-
 {% endblock %}

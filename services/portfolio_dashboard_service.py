@@ -1,47 +1,28 @@
 from supabase_config import supabase
-
-
-def get_exchange_rate(currency):
-
-    if currency == "SGD":
-        return 1
-
-    response = (
-        supabase
-        .table("exchange_rates")
-        .select("exchange_rate")
-        .eq("from_currency", currency)
-        .eq("to_currency", "SGD")
-        .order("rate_date", desc=True)
-        .limit(1)
-        .execute()
-    )
-
-    if response.data:
-        return float(response.data[0]["exchange_rate"])
-
-    return 1
+from services.exchange_rate_service import get_exchange_rate
 
 
 class PortfolioDashboardService:
 
     @staticmethod
-    def get_holdings():
+    def get_holdings(asset_class="All"):
 
-        holdings = (
+        query = (
             supabase
             .table("holdings")
             .select("*")
-            .execute()
-            .data
         )
 
-        return holdings
+        if asset_class != "All":
+            query = query.eq("asset_class", asset_class)
+
+        return query.execute().data
+
 
     @staticmethod
-    def get_summary():
+    def get_summary(asset_class="All"):
 
-        holdings = PortfolioDashboardService.get_holdings()
+        holdings = PortfolioDashboardService.get_holdings(asset_class)
 
         portfolio_value = 0
         total_cost = 0
@@ -50,22 +31,21 @@ class PortfolioDashboardService:
 
             rate = get_exchange_rate(holding["currency"])
 
-            value = (
-                holding["quantity"]
-                * holding["current_price"]
+            market_value = (
+                float(holding["quantity"])
+                * float(holding["current_price"])
                 * rate
             )
 
             cost = (
-                holding["quantity"]
-                * holding["average_cost"]
-                * rate
-            ) + (
-                holding["total_fees"]
-                * rate
-            )
+                (
+                    float(holding["quantity"])
+                    * float(holding["average_cost"])
+                )
+                + float(holding["total_fees"] or 0)
+            ) * rate
 
-            portfolio_value += value
+            portfolio_value += market_value
             total_cost += cost
 
         gain = portfolio_value - total_cost
@@ -78,43 +58,66 @@ class PortfolioDashboardService:
 
         return {
 
-            "portfolio_value": portfolio_value,
-            "total_cost": total_cost,
-            "gain": gain,
-            "return_pct": return_pct,
+            "portfolio_value": round(portfolio_value, 2),
+            "total_cost": round(total_cost, 2),
+            "gain": round(gain, 2),
+            "return_pct": round(return_pct, 2),
             "total_holdings": len(holdings)
 
         }
 
+
     @staticmethod
-    def get_asset_allocation():
+    def get_asset_allocation(asset_class="All"):
 
-        holdings = PortfolioDashboardService.get_holdings()
+        holdings = PortfolioDashboardService.get_holdings(asset_class)
 
-        allocation = []
+        result = {}
+        total_value = 0
 
         for holding in holdings:
 
             rate = get_exchange_rate(holding["currency"])
 
+            value = (
+                float(holding["quantity"])
+                * float(holding["current_price"])
+                * rate
+            )
+
+            total_value += value
+
+            cls = holding["asset_class"]
+
+            result[cls] = result.get(cls, 0) + value
+
+        allocation = []
+
+        for cls, value in result.items():
+
             allocation.append({
 
-                "asset": holding["asset_name"],
-                "ticker": holding["ticker"],
-                "value": (
-                    holding["quantity"]
-                    * holding["current_price"]
-                    * rate
-                )
+                "asset_class": cls,
+                "value": round(value, 2),
+                "percentage": round(
+                    value / total_value * 100,
+                    1
+                ) if total_value > 0 else 0
 
             })
 
+        allocation.sort(
+            key=lambda x: x["value"],
+            reverse=True
+        )
+
         return allocation
 
-    @staticmethod
-    def get_country_allocation():
 
-        holdings = PortfolioDashboardService.get_holdings()
+    @staticmethod
+    def get_country_allocation(asset_class="All"):
+
+        holdings = PortfolioDashboardService.get_holdings(asset_class)
 
         result = {}
 
@@ -123,8 +126,8 @@ class PortfolioDashboardService:
             rate = get_exchange_rate(holding["currency"])
 
             value = (
-                holding["quantity"]
-                * holding["current_price"]
+                float(holding["quantity"])
+                * float(holding["current_price"])
                 * rate
             )
 
@@ -136,17 +139,18 @@ class PortfolioDashboardService:
 
             {
                 "country": country,
-                "value": value
+                "value": round(value, 2)
             }
 
             for country, value in result.items()
 
         ]
 
-    @staticmethod
-    def get_platform_allocation():
 
-        holdings = PortfolioDashboardService.get_holdings()
+    @staticmethod
+    def get_platform_allocation(asset_class="All"):
+
+        holdings = PortfolioDashboardService.get_holdings(asset_class)
 
         result = {}
 
@@ -155,8 +159,8 @@ class PortfolioDashboardService:
             rate = get_exchange_rate(holding["currency"])
 
             value = (
-                holding["quantity"]
-                * holding["current_price"]
+                float(holding["quantity"])
+                * float(holding["current_price"])
                 * rate
             )
 
@@ -168,17 +172,18 @@ class PortfolioDashboardService:
 
             {
                 "platform": platform,
-                "value": value
+                "value": round(value, 2)
             }
 
             for platform, value in result.items()
 
         ]
 
-    @staticmethod
-    def get_currency_allocation():
 
-        holdings = PortfolioDashboardService.get_holdings()
+    @staticmethod
+    def get_currency_allocation(asset_class="All"):
+
+        holdings = PortfolioDashboardService.get_holdings(asset_class)
 
         result = {}
 
@@ -187,8 +192,8 @@ class PortfolioDashboardService:
             rate = get_exchange_rate(holding["currency"])
 
             value = (
-                holding["quantity"]
-                * holding["current_price"]
+                float(holding["quantity"])
+                * float(holding["current_price"])
                 * rate
             )
 
@@ -200,17 +205,18 @@ class PortfolioDashboardService:
 
             {
                 "currency": currency,
-                "value": value
+                "value": round(value, 2)
             }
 
             for currency, value in result.items()
 
         ]
 
-    @staticmethod
-    def get_top_holdings():
 
-        holdings = PortfolioDashboardService.get_holdings()
+    @staticmethod
+    def get_top_holdings(asset_class="All"):
+
+        holdings = PortfolioDashboardService.get_holdings(asset_class)
 
         top = []
 
@@ -218,22 +224,21 @@ class PortfolioDashboardService:
 
             rate = get_exchange_rate(holding["currency"])
 
-            value = (
-                holding["quantity"]
-                * holding["current_price"]
+            market_value = (
+                float(holding["quantity"])
+                * float(holding["current_price"])
                 * rate
             )
 
             cost = (
-                holding["quantity"]
-                * holding["average_cost"]
-                * rate
-            ) + (
-                holding["total_fees"]
-                * rate
-            )
+                (
+                    float(holding["quantity"])
+                    * float(holding["average_cost"])
+                )
+                + float(holding["total_fees"] or 0)
+            ) * rate
 
-            gain = value - cost
+            gain = market_value - cost
 
             pct = (
                 gain / cost * 100
@@ -245,6 +250,7 @@ class PortfolioDashboardService:
 
                 "asset": holding["asset_name"],
                 "ticker": holding["ticker"],
+                "asset_class": holding["asset_class"],
                 "country": holding["country"],
                 "currency": holding["currency"],
                 "platform": holding["platform"],
@@ -252,9 +258,9 @@ class PortfolioDashboardService:
                 "quantity": holding["quantity"],
                 "average_cost": holding["average_cost"],
                 "current_price": holding["current_price"],
-                "market_value": value,
-                "gain": gain,
-                "return_pct": pct
+                "market_value": round(market_value, 2),
+                "gain": round(gain, 2),
+                "return_pct": round(pct, 2)
 
             })
 
