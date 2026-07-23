@@ -86,7 +86,7 @@ def delete_income(id):
         .eq("id", id) \
         .execute()
 
-    return redirect(url_for("home"))
+    return redirect(url_for("dashboard.home"))
 
 
 # =====================================================
