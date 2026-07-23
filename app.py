@@ -414,13 +414,18 @@ def investment_dashboard():
 @app.route("/delete-holding/<int:id>")
 def delete_holding(id):
 
-    supabase.table("holdings") \
-        .delete() \
-        .eq("id", id) \
-        .execute()
+    try:
+
+        supabase.table("holdings") \
+            .delete() \
+            .eq("id", id) \
+            .execute()
+
+    except Exception as e:
+
+        print(e)
 
     return redirect(url_for("holdings"))
-
 # =====================================================
 # EDIT HOLDING
 # =====================================================

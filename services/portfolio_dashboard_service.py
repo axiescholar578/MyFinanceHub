@@ -5,16 +5,14 @@ class PortfolioDashboardService:
 
     @staticmethod
     def get_holdings():
-
-        holdings = (
+        return (
             supabase
             .table("holdings")
             .select("*")
+            .order("asset_name")
             .execute()
             .data
         )
-
-        return holdings
 
     @staticmethod
     def get_summary():
@@ -48,17 +46,11 @@ class PortfolioDashboardService:
         )
 
         return {
-
             "portfolio_value": portfolio_value,
-
             "total_cost": total_cost,
-
             "gain": gain,
-
             "return_pct": return_pct,
-
             "total_holdings": len(holdings)
-
         }
 
     @staticmethod
@@ -71,16 +63,9 @@ class PortfolioDashboardService:
         for holding in holdings:
 
             allocation.append({
-
                 "asset": holding["asset_name"],
-
                 "ticker": holding["ticker"],
-
-                "value": (
-                    float(holding["quantity"])
-                    * float(holding["current_price"])
-                )
-
+                "value": float(holding["quantity"]) * float(holding["current_price"])
             })
 
         return allocation
@@ -104,17 +89,11 @@ class PortfolioDashboardService:
             result[country] = result.get(country, 0) + value
 
         return [
-
             {
-
                 "country": country,
-
                 "value": value
-
             }
-
             for country, value in result.items()
-
         ]
 
     @staticmethod
@@ -136,17 +115,11 @@ class PortfolioDashboardService:
             result[platform] = result.get(platform, 0) + value
 
         return [
-
             {
-
                 "platform": platform,
-
                 "value": value
-
             }
-
             for platform, value in result.items()
-
         ]
 
     @staticmethod
@@ -168,17 +141,11 @@ class PortfolioDashboardService:
             result[currency] = result.get(currency, 0) + value
 
         return [
-
             {
-
                 "currency": currency,
-
                 "value": value
-
             }
-
             for currency, value in result.items()
-
         ]
 
     @staticmethod
@@ -190,7 +157,7 @@ class PortfolioDashboardService:
 
         for holding in holdings:
 
-            value = (
+            market_value = (
                 float(holding["quantity"])
                 * float(holding["current_price"])
             )
@@ -200,9 +167,9 @@ class PortfolioDashboardService:
                 * float(holding["average_cost"])
             ) + float(holding.get("total_fees") or 0)
 
-            gain = value - cost
+            gain = market_value - cost
 
-            pct = (
+            return_pct = (
                 gain / cost * 100
                 if cost > 0
                 else 0
@@ -220,26 +187,25 @@ class PortfolioDashboardService:
 
                 "platform": holding["platform"],
 
-                "quantity": holding["quantity"],
+                "account_name": holding["account_name"],
 
-                "average_cost": holding["average_cost"],
+                "quantity": float(holding["quantity"]),
 
-                "current_price": holding["current_price"],
+                "average_cost": float(holding["average_cost"]),
 
-                "market_value": value,
+                "current_price": float(holding["current_price"]),
+
+                "market_value": market_value,
 
                 "gain": gain,
 
-                "return_pct": pct
+                "return_pct": return_pct
 
             })
 
         top.sort(
-
             key=lambda x: x["market_value"],
-
             reverse=True
-
         )
 
         return top

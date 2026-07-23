@@ -212,10 +212,14 @@
                     <td class="text-center">
 
                         <a href="/edit-holding/{{ holding.id }}"
-                           class="btn btn-warning btn-sm">
-
+                            class="btn btn-warning btn-sm me-1">
                             ✏️ Edit
+                        </a>
 
+                        <a href="/delete-holding/{{ holding.id }}"
+                            class="btn btn-danger btn-sm"
+                            onclick="return confirm('Are you sure you want to delete this holding?')">
+                            🗑 Delete
                         </a>
 
                     </td>
