@@ -34,7 +34,7 @@ def add_income():
 
         }).execute()
 
-        return redirect(url_for("home"))
+        return redirect(url_for("dashboard.home"))
 
     return render_template("add_income.html")
 
@@ -58,7 +58,7 @@ def edit_income(id):
 
         }).eq("id", id).execute()
 
-        return redirect(url_for("home"))
+        return redirect(url_for("dashboard.home"))
 
     response = (
         supabase.table("income")
@@ -107,7 +107,7 @@ def add_expense():
 
         }).execute()
 
-        return redirect(url_for("home"))
+        return redirect(url_for("dashboard.home"))
 
     return render_template("add_expense.html")
 
@@ -130,7 +130,7 @@ def edit_expense(id):
 
         }).eq("id", id).execute()
 
-        return redirect(url_for("home"))
+        return redirect(url_for("dashboard.home"))
 
     response = (
         supabase.table("expenses")
@@ -158,7 +158,7 @@ def delete_expense(id):
         .eq("id", id) \
         .execute()
 
-    return redirect(url_for("home"))
+    return redirect(url_for("dashboard.home"))
 
 print(">>> ADD HOLDING ROUTE LOADED <<<")
 
@@ -497,7 +497,7 @@ def add_budget():
 
         }).execute()
 
-        return redirect(url_for("home"))
+        return redirect(url_for("dashboard.home"))
 
     return render_template("add_budget.html")
 
@@ -516,7 +516,7 @@ def edit_budget(id):
 
         }).eq("id", id).execute()
 
-        return redirect(url_for("home"))
+        return redirect(url_for("dashboard.home"))
 
     response = (
         supabase.table("budgets")
@@ -541,7 +541,7 @@ def delete_budget(id):
         .eq("id", id) \
         .execute()
 
-    return redirect(url_for("home"))
+    return redirect(url_for("dashboard.home"))
 # =====================================================
 # ACCOUNTS
 # =====================================================
