@@ -172,20 +172,7 @@ def holdings():
     response = (
         supabase
         .table("holdings")
-        .select("""
-            *,
-            assets(
-                asset_name,
-                ticker,
-                country,
-                currency,
-                asset_class
-            ),
-            accounts(
-                account_name,
-                platform
-            )
-        """)
+        .select("*")
         .order("id")
         .execute()
     )
@@ -194,34 +181,35 @@ def holdings():
 
     for row in response.data:
 
-        asset = row.get("assets") or {}
-        account = row.get("accounts") or {}
-
         holdings.append({
 
             "id": row["id"],
 
-            "asset_name": asset.get("asset_name", ""),
+            "purchase_date": row.get("purchase_date", ""),
 
-            "ticker": asset.get("ticker", ""),
+            "asset_name": row.get("asset_name", ""),
 
-            "country": asset.get("country", ""),
+            "ticker": row.get("ticker", ""),
 
-            "currency": asset.get("currency", ""),
+            "asset_class": row.get("asset_class", ""),
 
-            "asset_class": asset.get("asset_class", ""),
+            "platform": row.get("platform", ""),
 
-            "platform": account.get("platform", ""),
+            "account_name": row.get("account_name", ""),
 
-            "account_name": account.get("account_name", ""),
+            "country": row.get("country", ""),
 
-            "quantity": float(row["quantity"]),
+            "currency": row.get("currency", ""),
 
-            "average_cost": float(row["average_cost"]),
+            "quantity": float(row.get("quantity") or 0),
+
+            "average_cost": float(row.get("average_cost") or 0),
 
             "current_price": float(row.get("current_price") or 0),
 
-            "total_fees": float(row.get("total_fees") or 0)
+            "total_fees": float(row.get("total_fees") or 0),
+
+            "remarks": row.get("remarks", "")
 
         })
 
@@ -446,8 +434,9 @@ def edit_holding(id):
 
             "quantity": float(request.form["quantity"]),
             "average_cost": float(request.form["average_cost"]),
+            "total_fees": float(request.form["total_fees"]),
             "current_price": float(request.form["current_price"]),
-            "total_fees": float(request.form["total_fees"])
+            "remarks": request.form["remarks"]
 
         }).eq("id", id).execute()
 
@@ -456,29 +445,19 @@ def edit_holding(id):
     response = (
         supabase
         .table("holdings")
-        .select("""
-            *,
-            assets(
-                asset_name,
-                ticker,
-                country,
-                currency
-            ),
-            accounts(
-                account_name
-            )
-        """)
+        .select("*")
         .eq("id", id)
         .single()
         .execute()
     )
 
+    if not response.data:
+        return "Holding not found", 404
+
     return render_template(
         "edit_holding.html",
         holding=response.data
-    )
-    
-# =====================================================
+    )# =====================================================
 # ADD BUDGET
 # =====================================================
 
@@ -633,20 +612,17 @@ def update_market_prices():
     holdings = (
         supabase
         .table("holdings")
-        .select("""
-            id,
-            asset_id,
-            assets(
-                ticker
-            )
-        """)
+        .select("id, ticker")
         .execute()
         .data
     )
 
     for holding in holdings:
 
-        ticker = holding["assets"]["ticker"]
+        ticker = holding["ticker"]
+
+        if not ticker:
+            continue
 
         price = MarketPriceService.get_price(ticker)
 
@@ -659,7 +635,7 @@ def update_market_prices():
             }).eq("id", holding["id"]).execute()
 
     return redirect(url_for("holdings"))
-    
+
 # =====================================================
 # RUN APP
 # =====================================================

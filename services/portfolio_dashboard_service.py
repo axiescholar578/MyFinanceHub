@@ -9,18 +9,7 @@ class PortfolioDashboardService:
         holdings = (
             supabase
             .table("holdings")
-            .select("""
-                *,
-                assets(
-                    asset_name,
-                    ticker,
-                    country,
-                    currency
-                ),
-                accounts(
-                    account_name
-                )
-            """)
+            .select("*")
             .execute()
             .data
         )
@@ -38,14 +27,14 @@ class PortfolioDashboardService:
         for holding in holdings:
 
             value = (
-                holding["quantity"]
-                * holding["current_price"]
+                float(holding["quantity"])
+                * float(holding["current_price"])
             )
 
             cost = (
-                holding["quantity"]
-                * holding["average_cost"]
-            ) + holding["total_fees"]
+                float(holding["quantity"])
+                * float(holding["average_cost"])
+            ) + float(holding.get("total_fees") or 0)
 
             portfolio_value += value
             total_cost += cost
@@ -83,14 +72,17 @@ class PortfolioDashboardService:
 
             allocation.append({
 
-                "asset": holding["assets"]["asset_name"],
+                "asset": holding["asset_name"],
 
-                "ticker": holding["assets"]["ticker"],
+                "ticker": holding["ticker"],
 
-                "value": holding["quantity"] * holding["current_price"]
+                "value": (
+                    float(holding["quantity"])
+                    * float(holding["current_price"])
+                )
 
             })
-    
+
         return allocation
 
     @staticmethod
@@ -102,11 +94,11 @@ class PortfolioDashboardService:
 
         for holding in holdings:
 
-            country = holding["assets"]["country"]
+            country = holding["country"]
 
             value = (
-                holding["quantity"]
-                * holding["current_price"]
+                float(holding["quantity"])
+                * float(holding["current_price"])
             )
 
             result[country] = result.get(country, 0) + value
@@ -134,11 +126,11 @@ class PortfolioDashboardService:
 
         for holding in holdings:
 
-            platform = holding["accounts"]["account_name"]
+            platform = holding["platform"]
 
             value = (
-                holding["quantity"]
-                * holding["current_price"]
+                float(holding["quantity"])
+                * float(holding["current_price"])
             )
 
             result[platform] = result.get(platform, 0) + value
@@ -166,11 +158,11 @@ class PortfolioDashboardService:
 
         for holding in holdings:
 
-            currency = holding["assets"]["currency"]
+            currency = holding["currency"]
 
             value = (
-                holding["quantity"]
-                * holding["current_price"]
+                float(holding["quantity"])
+                * float(holding["current_price"])
             )
 
             result[currency] = result.get(currency, 0) + value
@@ -199,14 +191,14 @@ class PortfolioDashboardService:
         for holding in holdings:
 
             value = (
-                holding["quantity"]
-                * holding["current_price"]
+                float(holding["quantity"])
+                * float(holding["current_price"])
             )
 
             cost = (
-                holding["quantity"]
-                * holding["average_cost"]
-            ) + holding["total_fees"]
+                float(holding["quantity"])
+                * float(holding["average_cost"])
+            ) + float(holding.get("total_fees") or 0)
 
             gain = value - cost
 
@@ -218,15 +210,15 @@ class PortfolioDashboardService:
 
             top.append({
 
-                "asset": holding["assets"]["asset_name"],
+                "asset": holding["asset_name"],
 
-                "ticker": holding["assets"]["ticker"],
+                "ticker": holding["ticker"],
 
-                "country": holding["assets"]["country"],
+                "country": holding["country"],
 
-                "currency": holding["assets"]["currency"],
+                "currency": holding["currency"],
 
-                "platform": holding["accounts"]["account_name"],
+                "platform": holding["platform"],
 
                 "quantity": holding["quantity"],
 
