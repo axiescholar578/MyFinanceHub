@@ -21,87 +21,115 @@
 </head>
 
 <body class="bg-light">
+    
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
 
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
+    <div class="container">
 
-        <div class="container">
+        <a class="navbar-brand fw-bold" href="/">
+            <i class="bi bi-wallet2"></i>
+            My Finance Hub
+        </a>
 
-            <a class="navbar-brand fw-bold" href="/">
-                <i class="bi bi-wallet2"></i>
-                My Finance Hub
-            </a>
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav">
 
-            <button class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
 
-                <span class="navbar-toggler-icon"></span>
+        </button>
 
-            </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
 
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
 
-                <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">
+                        <i class="bi bi-speedometer2"></i>
+                        Dashboard
+                    </a>
+                </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="bi bi-speedometer2"></i>
-                            Dashboard
-                        </a>
-                    </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/add-income">
+                        <i class="bi bi-cash-stack"></i>
+                        Add Income
+                    </a>
+                </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="/add-income">
-                            <i class="bi bi-cash-stack"></i>
-                            Add Income
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/add-expense">
-                            <i class="bi bi-wallet2"></i>
-                            Add Expense
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/add-holding">
+                <li class="nav-item">
+                    <a class="nav-link" href="/add-expense">
+                        <i class="bi bi-wallet2"></i>
+                        Add Expense
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/add-holding">
                         <i class="bi bi-graph-up"></i>
                         Add Holding
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/holdings">
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/holdings">
                         <i class="bi bi-graph-up-arrow"></i>
                         Holdings
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/transactions">
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/transactions">
                         <i class="bi bi-credit-card"></i>
                         Transactions
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/accounts">
-                        <i class="bi bi-bank"></i> Accounts
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link"
-                            href="{{ url_for('portfolio_dashboard.portfolio_dashboard') }}">
-                            <i class="bi bi-bar-chart-line"></i>
-                            Portfolio
-                        </a>
-                    </li>
-                </ul>
+                    </a>
+                </li>
 
-            </div>
+                <li class="nav-item">
+                    <a class="nav-link" href="/accounts">
+                        <i class="bi bi-bank"></i>
+                        Accounts
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{{ url_for('portfolio_dashboard.portfolio_dashboard') }}">
+                        <i class="bi bi-bar-chart-line"></i>
+                        Portfolio
+                    </a>
+                </li>
+
+                <!-- Divider -->
+                <li class="nav-item">
+                    <span class="nav-link text-secondary">|</span>
+                </li>
+
+                <!-- Logged in user -->
+                <li class="nav-item">
+                    <span class="nav-link text-warning">
+                        <i class="bi bi-person-circle"></i>
+                        {{ session.get('email') }}
+                    </span>
+                </li>
+
+                <!-- Logout -->
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="/logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Logout
+                    </a>
+                </li>
+
+            </ul>
 
         </div>
 
-    </nav>
+    </div>
 
+</nav>
     <!-- Main Content -->
     <div class="container mt-4">
 
