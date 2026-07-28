@@ -1,10 +1,28 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask_login import (
+    login_user,
+    logout_user,
+    login_required,
+    current_user
+)
+
+from flask import Flask, render_template, request, redirect, url_for, session
 
 from supabase_config import supabase
 
 from services.portfolio_engine import PortfolioEngine
 
 app = Flask(__name__)
+
+from auth import login_manager
+
+login_manager.init_app(app)
+
+import os
+
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "myfinancehub_2026_secret_key"   # fallback for local development
+)
 
 from routes.dashboard import dashboard_bp
 
@@ -15,6 +33,61 @@ app.register_blueprint(dashboard_bp)
 # app.register_blueprint(dashboard_bp)
 app.register_blueprint(portfolio_dashboard_bp)
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+
+    if request.method == "POST":
+
+        email = request.form["email"]
+        password = request.form["password"]
+
+        try:
+
+            supabase.auth.sign_up({
+
+                "email": email,
+                "password": password
+
+            })
+
+            return redirect(url_for("login"))
+
+        except Exception as e:
+
+            return str(e)
+
+    return render_template("register.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+
+        email = request.form["email"]
+        password = request.form["password"]
+
+        try:
+
+            response = supabase.auth.sign_in_with_password({
+
+                "email": email,
+                "password": password
+
+            })
+
+            session["access_token"] = response.session.access_token
+
+            session["user_id"] = response.user.id
+
+            session["email"] = response.user.email
+
+            return redirect(url_for("dashboard.home"))
+
+        except Exception as e:
+
+            return str(e)
+
+    return render_template("login.html")
     # =====================================================
 # ADD INCOME
 # =====================================================
@@ -173,6 +246,7 @@ def holdings():
         supabase
         .table("holdings")
         .select("*")
+        .eq("user_id", session["user_id"])
         .order("id")
         .execute()
     )
@@ -240,7 +314,7 @@ def add_holding():
         remarks = request.form["remarks"]
 
         supabase.table("holdings").insert({
-
+            "user_id": session["user_id"],    
             "purchase_date": purchase_date,
             "asset_class": asset_class,
             "platform": platform,
@@ -477,6 +551,7 @@ def add_budget():
 
             "category": request.form["category"],
             "budget_amount": float(request.form["budget_amount"]),
+            "user_id": session["user_id"],
             "month": month
 
         }).execute()
@@ -496,6 +571,7 @@ def edit_budget(id):
 
             "category": request.form["category"],
             "budget_amount": float(request.form["budget_amount"]),
+            "user_id": session["user_id"],
             "month": month
 
         }).eq("id", id).execute()
@@ -523,6 +599,7 @@ def delete_budget(id):
     supabase.table("budgets") \
         .delete() \
         .eq("id", id) \
+        .eq("user_id", session["user_id"]) \
         .execute()
 
     return redirect(url_for("dashboard.home"))
@@ -536,6 +613,7 @@ def accounts():
     response = (
         supabase.table("accounts")
         .select("*")
+        .eq("user_id", session["user_id"])
         .order("platform")
         .execute()
     )
@@ -553,6 +631,8 @@ def add_account():
 
         supabase.table("accounts").insert({
 
+            "user_id": session["user_id"],
+
             "platform": request.form["platform"],
             "account_name": request.form["account_name"],
             "account_type": request.form["account_type"],
@@ -565,7 +645,6 @@ def add_account():
         return redirect(url_for("accounts"))
 
     return render_template("add_account.html")
-
 
 @app.route("/edit-account/<int:id>", methods=["GET", "POST"])
 def edit_account(id):
@@ -581,7 +660,10 @@ def edit_account(id):
             "base_currency": request.form["base_currency"],
             "remarks": request.form["remarks"]
 
-        }).eq("id", id).execute()
+        }) \
+        .eq("id", id) \
+        .eq("user_id", session["user_id"]) \
+        .execute()
 
         return redirect(url_for("accounts"))
 
@@ -589,6 +671,7 @@ def edit_account(id):
         supabase.table("accounts")
         .select("*")
         .eq("id", id)
+        .eq("user_id", session["user_id"])
         .single()
         .execute()
     )
@@ -598,16 +681,16 @@ def edit_account(id):
         account=response.data
     )
 
-
 @app.route("/delete-account/<int:id>")
 def delete_account(id):
 
     supabase.table("accounts") \
         .delete() \
         .eq("id", id) \
+        .eq("user_id", session["user_id"]) \
         .execute()
 
-    return redirect(url_for("accounts"))    
+    return redirect(url_for("accounts")) 
 
 @app.route("/update-market-prices")
 def update_market_prices():

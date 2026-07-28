@@ -1,16 +1,19 @@
+from flask import session
 from supabase_config import supabase
 from services.exchange_rate_service import get_exchange_rate
-
 
 class PortfolioDashboardService:
 
     @staticmethod
     def get_holdings(asset_class="All"):
 
+        user_id = session["user_id"]
+
         query = (
             supabase
             .table("holdings")
             .select("*")
+            .eq("user_id", user_id)
         )
 
         if asset_class != "All":

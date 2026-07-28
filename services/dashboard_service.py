@@ -4,14 +4,24 @@ from supabase_config import supabase
 class DashboardService:
 
     @staticmethod
-    def get_income_data(selected_month=None,
-                        search="",
-                        sort="income_date",
-                        order="desc"):
+    def get_income_data(
+        user_id,
+        selected_month=None,
+        search="",
+        sort="income_date",
+        order="desc"
+    ):
 
-        income_query = supabase.table("income").select("*")
+        income_query = (
+            supabase
+            .table("income")
+            .select("*")
+            .eq("user_id", user_id)
+        )
 
+        # -------------------------
         # Month filter
+        # -------------------------
         if selected_month:
 
             start_date = f"{selected_month}-01"
@@ -28,14 +38,20 @@ class DashboardService:
                 .lt("income_date", end_date)
             )
 
+        # -------------------------
         # Search
+        # -------------------------
         if search:
 
             income_query = income_query.or_(
-                f"source.ilike.%{search}%,category.ilike.%{search}%,remarks.ilike.%{search}%"
+                f"source.ilike.%{search}%,"
+                f"category.ilike.%{search}%,"
+                f"remarks.ilike.%{search}%"
             )
 
+        # -------------------------
         # Sort
+        # -------------------------
         income_query = income_query.order(
             sort,
             desc=(order == "desc")

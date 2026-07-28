@@ -1,12 +1,12 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, session
 from supabase_config import supabase
 from services.dashboard_service import DashboardService
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
-
 @dashboard_bp.route("/")
 def home():
+    user_id = session["user_id"]
 
     selected_month = request.args.get("month")
     
@@ -19,7 +19,9 @@ def home():
     # -------------------------
 # Income
 # -------------------------
+ 
     incomes, total_income = DashboardService.get_income_data(
+        user_id=user_id,
         selected_month=selected_month,
         search=search,
         sort=sort,
@@ -29,7 +31,11 @@ def home():
     # Expenses
     # -------------------------
 
-    expense_query = supabase.table("expenses").select("*")
+    expense_query = (
+        supabase.table("expenses")
+        .select("*")
+        .eq("user_id", user_id)
+    )
 
     if selected_month:
 
@@ -91,7 +97,13 @@ def home():
     # Budgets
     # -------------------------
 
-    budgets = supabase.table("budgets").select("*").execute().data
+    budgets = (
+    supabase.table("budgets")
+    .select("*")
+    .eq("user_id", user_id)
+    .execute()
+    .data
+    )
 
     budget_summary = []
 
@@ -200,14 +212,26 @@ def home():
     monthly_expense = defaultdict(float)
 
 # Income by month
-    for income in supabase.table("income").select("*").execute().data:
+    for income in (
+    supabase.table("income")
+    .select("*")
+    .eq("user_id", user_id)
+    .execute()
+    .data
+    ):
 
         month = income["income_date"][:7]
 
         monthly_income[month] += income["amount"]
 
 # Expense by month
-    for expense in supabase.table("expenses").select("*").execute().data:
+    for expense in (
+    supabase.table("expenses")
+    .select("*")
+    .eq("user_id", user_id)
+    .execute()
+    .data
+    ):
 
         month = expense["transaction_date"][:7]
 
