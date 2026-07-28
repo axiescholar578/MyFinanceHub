@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session
+from flask import Blueprint, render_template, request, session, redirect, url_for
 from supabase_config import supabase
 from services.dashboard_service import DashboardService
 
@@ -6,6 +6,9 @@ dashboard_bp = Blueprint("dashboard", __name__)
 
 @dashboard_bp.route("/")
 def home():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
     user_id = session["user_id"]
 
     selected_month = request.args.get("month")

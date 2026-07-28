@@ -33,6 +33,14 @@ app.register_blueprint(dashboard_bp)
 # app.register_blueprint(dashboard_bp)
 app.register_blueprint(portfolio_dashboard_bp)
 
+@app.route("/")
+def index():
+
+    if "user_id" in session:
+        return redirect(url_for("dashboard.home"))
+
+    return redirect(url_for("login"))
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
@@ -94,6 +102,8 @@ def login():
 
 @app.route("/add-income", methods=["GET", "POST"])
 def add_income():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -103,7 +113,8 @@ def add_income():
             "source": request.form["source"],
             "category": request.form["category"],
             "amount": float(request.form["amount"]),
-            "remarks": request.form["remarks"]
+            "remarks": request.form["remarks"],
+            "user_id": session["user_id"]
 
         }).execute()
 
@@ -115,9 +126,11 @@ def add_income():
 # =====================================================
 # EDIT INCOME
 # =====================================================
-
 @app.route("/edit-income/<int:id>", methods=["GET", "POST"])
 def edit_income(id):
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -129,7 +142,10 @@ def edit_income(id):
             "amount": float(request.form["amount"]),
             "remarks": request.form["remarks"]
 
-        }).eq("id", id).execute()
+        }) \
+        .eq("id", id) \
+        .eq("user_id", session["user_id"]) \
+        .execute()
 
         return redirect(url_for("dashboard.home"))
 
@@ -137,6 +153,7 @@ def edit_income(id):
         supabase.table("income")
         .select("*")
         .eq("id", id)
+        .eq("user_id", session["user_id"])
         .single()
         .execute()
     )
@@ -154,13 +171,16 @@ def edit_income(id):
 @app.route("/delete-income/<int:id>")
 def delete_income(id):
 
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
     supabase.table("income") \
         .delete() \
         .eq("id", id) \
+        .eq("user_id", session["user_id"]) \
         .execute()
 
     return redirect(url_for("dashboard.home"))
-
 
 # =====================================================
 # ADD EXPENSE
@@ -168,6 +188,8 @@ def delete_income(id):
 
 @app.route("/add-expense", methods=["GET", "POST"])
 def add_expense():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -176,8 +198,9 @@ def add_expense():
             "transaction_date": request.form["transaction_date"],
             "category": request.form["category"],
             "description": request.form["description"],
-            "amount": float(request.form["amount"])
-
+            "amount": float(request.form["amount"]),
+            "user_id": session["user_id"]
+        
         }).execute()
 
         return redirect(url_for("dashboard.home"))
@@ -188,9 +211,11 @@ def add_expense():
 # =====================================================
 # EDIT EXPENSE
 # =====================================================
-
 @app.route("/edit-expense/<int:id>", methods=["GET", "POST"])
 def edit_expense(id):
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -201,7 +226,10 @@ def edit_expense(id):
             "description": request.form["description"],
             "amount": float(request.form["amount"])
 
-        }).eq("id", id).execute()
+        }) \
+        .eq("id", id) \
+        .eq("user_id", session["user_id"]) \
+        .execute()
 
         return redirect(url_for("dashboard.home"))
 
@@ -209,6 +237,7 @@ def edit_expense(id):
         supabase.table("expenses")
         .select("*")
         .eq("id", id)
+        .eq("user_id", session["user_id"])
         .single()
         .execute()
     )
@@ -226,9 +255,13 @@ def edit_expense(id):
 @app.route("/delete-expense/<int:id>")
 def delete_expense(id):
 
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
     supabase.table("expenses") \
         .delete() \
         .eq("id", id) \
+        .eq("user_id", session["user_id"]) \
         .execute()
 
     return redirect(url_for("dashboard.home"))
@@ -241,6 +274,8 @@ print(">>> ADD HOLDING ROUTE LOADED <<<")
 
 @app.route("/holdings")
 def holdings():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     response = (
         supabase
@@ -294,6 +329,8 @@ def holdings():
 
 @app.route("/add-holding", methods=["GET", "POST"])
 def add_holding():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -334,21 +371,28 @@ def add_holding():
         return redirect("/")
 
     return render_template("add_holding.html")
-
 @app.route("/rebuild-portfolio")
 def rebuild_portfolio():
 
-    PortfolioEngine.rebuild_holdings()
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    PortfolioEngine.rebuild_holdings(
+        session["user_id"]
+    )
 
     return redirect("/holdings")
 
 @app.route("/transactions")
 def transactions():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     response = (
     supabase
     .table("transactions")
     .select("*, assets(asset_name,ticker), accounts(account_name)")
+    .eq("user_id", session["user_id"])
     .order("transaction_date", desc=True)
     .execute()
     )
@@ -373,6 +417,8 @@ def transactions():
 
 @app.route("/add-transaction", methods=["GET", "POST"])
 def add_transaction():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -387,7 +433,8 @@ def add_transaction():
             "fees": float(request.form["fees"]),
             "exchange_rate": float(request.form["exchange_rate"]),
             "cash_amount": float(request.form["cash_amount"]),
-            "remarks": request.form["remarks"]
+            "remarks": request.form["remarks"],
+            "user_id": session["user_id"]
 
         }).execute()
 
@@ -397,6 +444,7 @@ def add_transaction():
         supabase
         .table("assets")
         .select("*")
+        .eq("user_id", session["user_id"])
         .order("asset_name")
         .execute()
         .data
@@ -406,6 +454,7 @@ def add_transaction():
         supabase
         .table("accounts")
         .select("*")
+        .eq("user_id", session["user_id"])
         .order("account_name")
         .execute()
         .data
@@ -422,10 +471,17 @@ def add_transaction():
 
 @app.route("/investment")
 def investment_dashboard():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     selected_year = request.args.get("year")
 
-    query = supabase.table("holdings").select("*")
+    query = (
+        supabase
+        .table("holdings")
+        .select("*")
+        .eq("user_id", session["user_id"])
+    )
 
     if selected_year:
 
@@ -484,19 +540,21 @@ def investment_dashboard():
 # =====================================================
 # DELETE HOLDING
 # =====================================================
-
 @app.route("/delete-holding/<int:id>")
 def delete_holding(id):
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     try:
 
         supabase.table("holdings") \
             .delete() \
             .eq("id", id) \
+            .eq("user_id", session["user_id"]) \
             .execute()
 
     except Exception as e:
-
         print(e)
 
     return redirect(url_for("holdings"))
@@ -504,8 +562,15 @@ def delete_holding(id):
 # EDIT HOLDING
 # =====================================================
 
+# =====================================================
+# EDIT HOLDING
+# =====================================================
+
 @app.route("/edit-holding/<int:id>", methods=["GET", "POST"])
 def edit_holding(id):
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -517,7 +582,10 @@ def edit_holding(id):
             "current_price": float(request.form["current_price"]),
             "remarks": request.form["remarks"]
 
-        }).eq("id", id).execute()
+        }) \
+        .eq("id", id) \
+        .eq("user_id", session["user_id"]) \
+        .execute()
 
         return redirect(url_for("holdings"))
 
@@ -526,6 +594,7 @@ def edit_holding(id):
         .table("holdings")
         .select("*")
         .eq("id", id)
+        .eq("user_id", session["user_id"])
         .single()
         .execute()
     )
@@ -536,12 +605,15 @@ def edit_holding(id):
     return render_template(
         "edit_holding.html",
         holding=response.data
-    )# =====================================================
+    )
+ # =====================================================
 # ADD BUDGET
 # =====================================================
 
 @app.route("/add-budget", methods=["GET", "POST"])
 def add_budget():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -559,9 +631,15 @@ def add_budget():
         return redirect(url_for("dashboard.home"))
 
     return render_template("add_budget.html")
+# =====================================================
+# EDIT BUDGET
+# =====================================================
 
 @app.route("/edit-budget/<int:id>", methods=["GET", "POST"])
 def edit_budget(id):
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -571,10 +649,12 @@ def edit_budget(id):
 
             "category": request.form["category"],
             "budget_amount": float(request.form["budget_amount"]),
-            "user_id": session["user_id"],
             "month": month
 
-        }).eq("id", id).execute()
+        }) \
+        .eq("id", id) \
+        .eq("user_id", session["user_id"]) \
+        .execute()
 
         return redirect(url_for("dashboard.home"))
 
@@ -582,19 +662,23 @@ def edit_budget(id):
         supabase.table("budgets")
         .select("*")
         .eq("id", id)
+        .eq("user_id", session["user_id"])
         .single()
         .execute()
     )
 
-    budget = response.data
+    if not response.data:
+        return "Budget not found", 404
 
     return render_template(
         "edit_budget.html",
-        budget=budget
+        budget=response.data
     )
-
 @app.route("/delete-budget/<int:id>")
 def delete_budget(id):
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     supabase.table("budgets") \
         .delete() \
@@ -609,6 +693,8 @@ def delete_budget(id):
 
 @app.route("/accounts")
 def accounts():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     response = (
         supabase.table("accounts")
@@ -626,6 +712,8 @@ def accounts():
 
 @app.route("/add-account", methods=["GET", "POST"])
 def add_account():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -648,6 +736,9 @@ def add_account():
 
 @app.route("/edit-account/<int:id>", methods=["GET", "POST"])
 def edit_account(id):
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -684,16 +775,25 @@ def edit_account(id):
 @app.route("/delete-account/<int:id>")
 def delete_account(id):
 
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
     supabase.table("accounts") \
         .delete() \
         .eq("id", id) \
         .eq("user_id", session["user_id"]) \
         .execute()
 
-    return redirect(url_for("accounts")) 
+    return redirect(url_for("accounts"))
+# =====================================================
+# UPDATE MARKET PRICES
+# =====================================================
 
 @app.route("/update-market-prices")
 def update_market_prices():
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
     from services.market_price_service import MarketPriceService
 
@@ -701,6 +801,7 @@ def update_market_prices():
         supabase
         .table("holdings")
         .select("id, ticker")
+        .eq("user_id", session["user_id"])
         .execute()
         .data
     )
@@ -720,10 +821,12 @@ def update_market_prices():
 
                 "current_price": price
 
-            }).eq("id", holding["id"]).execute()
+            }) \
+            .eq("id", holding["id"]) \
+            .eq("user_id", session["user_id"]) \
+            .execute()
 
     return redirect(url_for("holdings"))
-
 # =====================================================
 # RUN APP
 # =====================================================

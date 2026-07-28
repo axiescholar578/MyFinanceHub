@@ -1,13 +1,11 @@
-from flask import session
 from supabase_config import supabase
 from services.exchange_rate_service import get_exchange_rate
+
 
 class PortfolioDashboardService:
 
     @staticmethod
-    def get_holdings(asset_class="All"):
-
-        user_id = session["user_id"]
+    def get_holdings(user_id, asset_class="All"):
 
         query = (
             supabase
@@ -19,13 +17,14 @@ class PortfolioDashboardService:
         if asset_class != "All":
             query = query.eq("asset_class", asset_class)
 
-        return query.execute().data
+        response = query.execute()
+        return response.data or []
 
 
     @staticmethod
-    def get_summary(asset_class="All"):
+    def get_summary(user_id, asset_class="All"):
 
-        holdings = PortfolioDashboardService.get_holdings(asset_class)
+        holdings = PortfolioDashboardService.get_holdings(user_id, asset_class)
 
         portfolio_value = 0
         total_cost = 0
@@ -60,20 +59,18 @@ class PortfolioDashboardService:
         )
 
         return {
-
             "portfolio_value": round(portfolio_value, 2),
             "total_cost": round(total_cost, 2),
             "gain": round(gain, 2),
             "return_pct": round(return_pct, 2),
             "total_holdings": len(holdings)
-
         }
 
 
     @staticmethod
-    def get_asset_allocation(asset_class="All"):
+    def get_asset_allocation(user_id, asset_class="All"):
 
-        holdings = PortfolioDashboardService.get_holdings(asset_class)
+        holdings = PortfolioDashboardService.get_holdings(user_id, asset_class)
 
         result = {}
         total_value = 0
@@ -99,14 +96,12 @@ class PortfolioDashboardService:
         for cls, value in result.items():
 
             allocation.append({
-
                 "asset_class": cls,
                 "value": round(value, 2),
                 "percentage": round(
                     value / total_value * 100,
                     1
                 ) if total_value > 0 else 0
-
             })
 
         allocation.sort(
@@ -118,9 +113,9 @@ class PortfolioDashboardService:
 
 
     @staticmethod
-    def get_country_allocation(asset_class="All"):
+    def get_country_allocation(user_id, asset_class="All"):
 
-        holdings = PortfolioDashboardService.get_holdings(asset_class)
+        holdings = PortfolioDashboardService.get_holdings(user_id, asset_class)
 
         result = {}
 
@@ -139,21 +134,18 @@ class PortfolioDashboardService:
             result[country] = result.get(country, 0) + value
 
         return [
-
             {
                 "country": country,
                 "value": round(value, 2)
             }
-
             for country, value in result.items()
-
         ]
 
 
     @staticmethod
-    def get_platform_allocation(asset_class="All"):
+    def get_platform_allocation(user_id, asset_class="All"):
 
-        holdings = PortfolioDashboardService.get_holdings(asset_class)
+        holdings = PortfolioDashboardService.get_holdings(user_id, asset_class)
 
         result = {}
 
@@ -172,21 +164,18 @@ class PortfolioDashboardService:
             result[platform] = result.get(platform, 0) + value
 
         return [
-
             {
                 "platform": platform,
                 "value": round(value, 2)
             }
-
             for platform, value in result.items()
-
         ]
 
 
     @staticmethod
-    def get_currency_allocation(asset_class="All"):
+    def get_currency_allocation(user_id, asset_class="All"):
 
-        holdings = PortfolioDashboardService.get_holdings(asset_class)
+        holdings = PortfolioDashboardService.get_holdings(user_id, asset_class)
 
         result = {}
 
@@ -205,21 +194,18 @@ class PortfolioDashboardService:
             result[currency] = result.get(currency, 0) + value
 
         return [
-
             {
                 "currency": currency,
                 "value": round(value, 2)
             }
-
             for currency, value in result.items()
-
         ]
 
 
     @staticmethod
-    def get_top_holdings(asset_class="All"):
+    def get_top_holdings(user_id, asset_class="All"):
 
-        holdings = PortfolioDashboardService.get_holdings(asset_class)
+        holdings = PortfolioDashboardService.get_holdings(user_id, asset_class)
 
         top = []
 
@@ -250,7 +236,6 @@ class PortfolioDashboardService:
             )
 
             top.append({
-
                 "asset": holding["asset_name"],
                 "ticker": holding["ticker"],
                 "asset_class": holding["asset_class"],
@@ -264,7 +249,6 @@ class PortfolioDashboardService:
                 "market_value": round(market_value, 2),
                 "gain": round(gain, 2),
                 "return_pct": round(pct, 2)
-
             })
 
         top.sort(

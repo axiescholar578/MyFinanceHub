@@ -7,26 +7,32 @@ from supabase_config import supabase
 class PortfolioEngine:
 
     @staticmethod
-    def rebuild_holdings():
+    def rebuild_holdings(user_id):
 
         print("========== Portfolio Engine ==========")
 
-        # Read all transactions
+        # -----------------------------------
+        # Read this user's transactions only
+        # -----------------------------------
+
         response = (
             supabase
             .table("transactions")
             .select("*")
+            .eq("user_id", user_id)
             .order("transaction_date")
             .execute()
         )
 
-        transactions = response.data
+        transactions = response.data or []
 
         portfolio = defaultdict(lambda: {
+
             "quantity": 0,
             "total_cost": 0,
             "total_fees": 0,
             "account_id": None
+
         })
 
         for trx in transactions:
@@ -46,31 +52,44 @@ class PortfolioEngine:
             if trx_type == "BUY":
 
                 portfolio[asset_id]["quantity"] += qty
-
                 portfolio[asset_id]["total_cost"] += qty * price
-
                 portfolio[asset_id]["total_fees"] += fees
-
                 portfolio[asset_id]["account_id"] = account_id
 
             elif trx_type == "SELL":
 
                 portfolio[asset_id]["quantity"] -= qty
 
-        # Clear holdings
-        supabase.table("holdings").delete().neq("id", 0).execute()
+        # -----------------------------------
+        # Delete ONLY this user's holdings
+        # -----------------------------------
 
+        (
+            supabase
+            .table("holdings")
+            .delete()
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        # -----------------------------------
         # Build holdings
+        # -----------------------------------
+
         for asset_id, data in portfolio.items():
 
             if data["quantity"] <= 0:
                 continue
 
             average_cost = (
+
                 data["total_cost"] + data["total_fees"]
+
             ) / data["quantity"]
 
             holding = {
+
+                "user_id": user_id,
 
                 "asset_id": asset_id,
 
